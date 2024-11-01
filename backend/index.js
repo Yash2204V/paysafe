@@ -1,22 +1,18 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const app = express();
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const mainRouter = require("./routes/index");
 
-require("dotenv").config();
-const username = process.env.MONGODB_USERNAME;
-const password = process.env.MONGODB_PASSWORD;
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
-mongoose.connect(`mongodb+srv://${username}:${password}@paytm-clone.p9gdk.mongodb.net/?retryWrites=true&w=majority&appName=paytm-clone`);
-
-const db = mongoose.connection;
-
-db.once("open", () => {
-    console.log("Connected to MongoDB");
+app.get("/", async (req, res)=>{
+    res.send("Hello World");
 });
 
-app.get("/", (req,res)=>{
-    res.send("Hello World!");
-})
+app.use('/api/v1', mainRouter);
 
 app.listen(3000, ()=>{
     console.log("Server running on http://localhost:3000");
