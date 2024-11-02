@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
 const mainRouter = require("./routes/index");
 
 app.use(cors());

@@ -3,21 +3,53 @@ require("dotenv").config();
 
 const username = process.env.MONGODB_USERNAME;
 const password = process.env.MONGODB_PASSWORD;
-const zod = require("zod");
 
-mongoose.connect(`mongodb+srv://${username}:${password}@paytm-clone.p9gdk.mongodb.net/?retryWrites=true&w=majority&appName=paytm-clone`)
-
-const userSchema = zod.object({
-    firstname: zod.string(),
-    lastname: zod.string(),
-    email: zod.string().email(),
-    password: zod.string().min(6)
+mongoose.connect(`mongodb+srv://${username}:${password}@paytm-clone.p9gdk.mongodb.net/?retryWrites=true&w=majority&appName=paytm-clone`, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 });
 
-const validateUser = (user) => {
-    return userSchema.safeParse(user);
-};
+const userSchema = new mongoose.Schema({
+    firstname: {
+        type: String,
+        required: true,
+        maxlength: 50,
+        trim: true,
+    },
+    lastname: {
+        type: String,
+        required: true,
+        maxlength: 50,
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        minlength: 10,
+        trim: true,
+        lowercase: true,
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 8
+    }
+});
+
+const accountSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    balance: {
+        type: Number,
+        required: true
+    }
+
+});
 
 const User = mongoose.model("User", userSchema);
+const Account = mongoose.model("Account", accountSchema);
 
-module.exports = { User, validateUser };
+module.exports = { User, Account };
