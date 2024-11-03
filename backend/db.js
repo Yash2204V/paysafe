@@ -4,10 +4,7 @@ require("dotenv").config();
 const username = process.env.MONGODB_USERNAME;
 const password = process.env.MONGODB_PASSWORD;
 
-mongoose.connect(`mongodb+srv://${username}:${password}@paytm-clone.p9gdk.mongodb.net/?retryWrites=true&w=majority&appName=paytm-clone`, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+mongoose.connect(`mongodb+srv://${username}:${password}@paytm-clone.p9gdk.mongodb.net/?retryWrites=true&w=majority&appName=paytm-clone`);
 
 const userSchema = new mongoose.Schema({
     firstname: {

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { User } = require("../db");
+const { User, Account } = require("../db");
 const { z } = require("zod");
 
 const {JWT_SECRET} = require("../config");
@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-const { authMiddleware } = require("../middleware");
+const { authTokenMiddleware } = require("../middleware");
 
 const userSchema = z.object({
     firstname: z.string(),
@@ -27,7 +27,6 @@ router.post("/signup", async (req, res) => {
             message: "Email already taken/ Incorrect Input",
         });
     }
-
     try {
         const existingUser = await User.findOne({ email: email }); // Use req.body.email
         if (existingUser) {
@@ -46,7 +45,6 @@ router.post("/signup", async (req, res) => {
                 });
 
                 const userId = user._id;
-
                 await Account.create({
                     userId: userId,
                     balance: 1 + Math.random()*10000
@@ -86,27 +84,33 @@ router.post("/signin", async (req, res) => {
         email: email
     });
     
-    bcrypt.compare(password, user.password, async function(err, result) {
-
-        if (result == false) {
-            res.status(411).json({
-                message: "SignUp First/ Incorrect Input"
-            });
-
-        }else{
-            const userId = user._id;
-            var token = jwt.sign({ userId }, JWT_SECRET);
-            res.cookie("token", token);
-            
-            res.json({
-                message: "User login successfully",
-                token: token
-            });    
-        }
-    });
+    try{
+        bcrypt.compare(password, user.password, async function(err, result) {
+            if (result == false) {
+                res.status(411).json({
+                    message: "SignUp First/ Incorrect Input"
+                });
+    
+            }else{
+                const userId = user._id;
+                var token = jwt.sign({ userId }, JWT_SECRET);
+                res.cookie("token", token);
+                
+                res.json({
+                    message: "User login successfully",
+                    token: token
+                });    
+            }
+        });
+    } catch(err){
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err
+        });
+    }
 });
 
-router.post("/logout", (req,res)=>{
+router.post("/logout", authTokenMiddleware, (req,res)=>{
     res.cookie("token", "");
     res.json({
         message: "Logout successfully",
@@ -119,14 +123,14 @@ const updateSchema = z.object({
     password: z.string().optional()
 })
 
-router.put("/", authMiddleware, async (req, res)=>{
+router.put("/", authTokenMiddleware, async (req, res)=>{
     const {success, error} = updateSchema.safeParse(req.body);
     if(!success || error){
         return res.status(411).json({
             message: "Incorrect Input",
         });
     }
-
+    
     const userId = req.userId;
     try {
         const user = await User.findOneAndUpdate({ _id: userId }, req.body );
@@ -147,7 +151,7 @@ router.put("/", authMiddleware, async (req, res)=>{
     }
 })
 
-router.get("/bulk", async (req, res)=>{
+router.get("/bulk", authTokenMiddleware, async (req, res)=>{
     const filter = req.query.filter || "";
     const users = await User.find({
         $or: [{

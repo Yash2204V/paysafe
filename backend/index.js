@@ -1,11 +1,12 @@
 const express = require("express");
-const app = express();
 const cors = require("cors");
-const mainRouter = require("./routes/index");
+const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+const mainRouter = require("./routes/index");
 
 app.get("/", async (req, res)=>{
     res.send("Hello World");
