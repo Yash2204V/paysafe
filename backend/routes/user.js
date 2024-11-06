@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-const { authTokenMiddleware } = require("../middleware");
+const { authMiddleware, authTokenMiddleware } = require("../middleware");
 
 const userSchema = z.object({
     firstname: z.string(),
@@ -51,7 +51,7 @@ router.post("/signup", async (req, res) => {
                 });
                 
                 var token = jwt.sign({ userId }, JWT_SECRET);
-                res.cookie("token", token);
+                // res.cookie("token", token);
                 res.json({
                     message: "User created successfully",
                     token: token
@@ -94,7 +94,7 @@ router.post("/signin", async (req, res) => {
             }else{
                 const userId = user._id;
                 var token = jwt.sign({ userId }, JWT_SECRET);
-                res.cookie("token", token);
+                // res.cookie("token", token);
                 
                 res.json({
                     message: "User login successfully",
@@ -110,7 +110,7 @@ router.post("/signin", async (req, res) => {
     }
 });
 
-router.post("/logout", authTokenMiddleware, (req,res)=>{
+router.post("/logout", authMiddleware, (req,res)=>{
     res.cookie("token", "");
     res.json({
         message: "Logout successfully",
@@ -123,7 +123,7 @@ const updateSchema = z.object({
     password: z.string().optional()
 })
 
-router.put("/", authTokenMiddleware, async (req, res)=>{
+router.put("/", authMiddleware, async (req, res)=>{
     const {success, error} = updateSchema.safeParse(req.body);
     if(!success || error){
         return res.status(411).json({
@@ -151,7 +151,7 @@ router.put("/", authTokenMiddleware, async (req, res)=>{
     }
 })
 
-router.get("/bulk", authTokenMiddleware, async (req, res)=>{
+router.get("/bulk", authMiddleware, async (req, res)=>{
     const filter = req.query.filter || "";
     const users = await User.find({
         $or: [{

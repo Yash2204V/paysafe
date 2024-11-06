@@ -1,15 +1,25 @@
 const express = require("express");
 const router = express.Router();
-const { Account } = require("../db");
+const { Account, User } = require("../db");
 const mongoose = require("mongoose");
-const { authTokenMiddleware } = require("../middleware");
+const { authMiddleware, authTokenMiddleware } = require("../middleware");
 const { z } = require("zod");
 
-router.get("/balance", authTokenMiddleware, async (req, res) => {
+
+
+router.get("/balance", authMiddleware, async (req, res) => {
     const account = await Account.findOne({ userId: req.userId });
+    const user = await User.findOne({ _id: req.userId });    
+    if (!account || !user) {
+        return res.status(404).json({
+            message: "Account or user not found"
+        });
+    }
+
     res.json({
-        balance: account.balance.toFixed(2)
-    })
+        balance: account.balance.toFixed(2),
+        firstname: user.firstname
+    });
 });
 
 
@@ -18,12 +28,10 @@ const transfer = z.object({
     to: z.string()
 })
 
-router.post("/transfer", authTokenMiddleware, async (req, res) => {
-
+router.post("/transfer", authMiddleware, async (req, res) => {
     const session = await mongoose.startSession();
     try {    
         session.startTransaction();
-
         const { success, error } = transfer.safeParse(req.body);
         if (!success || error) {
             await session.abortTransaction();
