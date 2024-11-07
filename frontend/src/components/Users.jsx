@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 export const Users = () => {
     const [users, setUsers] = useState([]);
     const [filter, setFilter] = useState("");
-
     useEffect(() => {
         axios.get("http://localhost:3000/api/v1/user/bulk?filter=" + filter, {
             headers: {
@@ -21,11 +20,8 @@ export const Users = () => {
             console.error("There was an error fetching the users!", error);
         });
     }, [filter])
-
     return <>
-        <div className="font-bold mt-6 text-2xl text-gray-800">
-            Users
-        </div>
+        <div className="font-bold mt-6 text-2xl text-gray-800">Users</div>
         <div className="my-2">
             <input onChange={(e) => {
                 setFilter(e.target.value)
